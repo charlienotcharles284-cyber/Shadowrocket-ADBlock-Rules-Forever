@@ -1,0 +1,41 @@
+name: Update Shadowrocket Rules
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "0 3 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download upstream lazy.conf
+        run: |
+          curl -L \
+          https://raw.githubusercontent.com/Johnshall/Shadowrocket-ADBlock-Rules-Forever/release/lazy.conf \
+          -o lazy.conf
+
+      - name: Merge custom rules
+        run: |
+          cat lazy_group_modified.conf lazy.conf > temp.conf
+          mv temp.conf lazy.conf
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add lazy.conf
+
+          git diff --staged --quiet || git commit -m "Auto update rules"
+
+          git push
